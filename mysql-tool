@@ -111,9 +111,9 @@ class ConfigReader:
 def parse_args():
     parser = argparse.ArgumentParser(description="MySQL tool")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-a", "--analyze", dest="command", action="store_const", const="ANALYZE", help="ANALYZE all databases")
-    group.add_argument("-o", "--optimize", dest="command", action="store_const", const="OPTIMIZE", help="OPTIMIZE all databases")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Print processed tables")
+    group.add_argument("-a", "--analyze", dest="command", action="store_const", const="ANALYZE", help="analyze all databases")
+    group.add_argument("-o", "--optimize", dest="command", action="store_const", const="OPTIMIZE", help="optimize all databases")
+    parser.add_argument("-v", "--verbose", action="store_true", help="print processed tables")
     return parser.parse_args()
 
 

@@ -29,7 +29,6 @@ Usage
 
     optional arguments:
       -h, --help      show this help message and exit
-      -a, --analyze   ANALYZE all databases
-      -o, --optimize  OPTIMIZE all databases
-      -v, --verbose   Print processed tables
-
+      -a, --analyze   analyze all databases
+      -o, --optimize  optimize all databases
+      -v, --verbose   print processed tables
