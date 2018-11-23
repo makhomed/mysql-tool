@@ -39,6 +39,8 @@ class Config(dict):
 
 
 class ConfigReader:
+    """ https://dev.mysql.com/doc/refman/5.7/en/option-files.html
+    """
 
     def __init__(self):
         self.config = Config()
@@ -58,6 +60,8 @@ class ConfigReader:
                 line = line[:comment_start]
             line = line.strip()
             if not line:
+                continue
+            if line.startswith(';'):
                 continue
             line = line.replace("\t", "\x20")
             match = re.match(r'!includedir\s+(.+)', line)
