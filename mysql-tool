@@ -19,7 +19,7 @@ from contextlib import closing
 __author__ = "Gena Makhomed"
 __contact__ = "https://github.com/makhomed/mysql-tool"
 __license__ = "GPLv3"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __date__ = "2018-11-23"
 
 
@@ -104,7 +104,7 @@ class ConfigReader:
                 key = line
                 value = True
             if key in section_conf:
-                print "WARNING! [%s] key %s redefinition. old value: '5s' new value: '%s'" % (section_name, key, section_conf[key], value)
+                print "WARNING! [%s] key %s redefinition. old value: '%s' new value: '%s'" % (section_name, key, section_conf[key], value)
             section_conf[key]= value
 
 
