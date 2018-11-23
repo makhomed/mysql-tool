@@ -1,0 +1,154 @@
+#!/usr/bin/python
+
+"""
+yum install gcc python-devel
+yum install Percona-Server-devel-57
+pip install mysqlclient
+
+"""
+
+import argparse
+import codecs
+import os
+import os.path
+import re
+import MySQLdb
+from contextlib import closing
+
+
+__author__ = "Gena Makhomed"
+__contact__ = "https://github.com/makhomed/mysql-tool"
+__license__ = "GPLv3"
+__version__ = "1.0.0"
+__date__ = "2018-11-23"
+
+
+class Config(dict):
+
+    def __getattr__(self, key):
+        try:
+            return self.__getitem__(key)
+        except KeyError:
+            raise AttributeError(key)
+
+    def __setattr__(self, key, value):
+        return self.__setitem__(key, value)
+
+    def __delattr__(self, key):
+        return self.__delitem__(key)
+
+
+class ConfigReader:
+
+    def __init__(self):
+        self.config = Config()
+        self.read_config('/etc/my.cnf')
+        self.read_config(os.path.join(os.getenv('HOME', '/root'), '.my.cnf'))
+
+    def read_file(self, filename):
+        with codecs.open(filename, encoding='UTF-8') as input_file:
+            return input_file.read()
+
+    def read_lines(self, config_filename):
+        content = self.read_file(config_filename)
+        lines = content.splitlines()
+        for line in lines:
+            comment_start = line.find('#')
+            if comment_start > -1:
+                line = line[:comment_start]
+            line = line.strip()
+            if not line:
+                continue
+            line = line.replace("\t", "\x20")
+            match = re.match(r'!includedir\s+(.+)', line)
+            if match:
+                dirname = match.group(1)
+                entries = os.listdir(dirname)
+                for entry in entries:
+                    config_filename = os.path.join(dirname, entry)
+                    if config_filename.endswith('.cnf') and os.path.isfile(config_filename):
+                        for line in self.read_lines(config_filename):
+                            yield line
+                continue
+            match = re.match(r'!include\s+(.+)', line)
+            if match:
+                config_filename = match.group(1)
+                if os.path.isfile(config_filename):
+                    for line in self.read_lines(config_filename):
+                        yield line
+                continue
+            yield line
+
+    def read_config(self, config_filename):
+        section_name = None
+        section_conf = None
+        for line in self.read_lines(config_filename):
+            match = re.match(r'\[(\S+)\]', line)
+            if match:
+                section_name = match.group(1)
+                if section_name in self.config:
+                    section_conf = self.config[section_name]
+                else:
+                    section_conf = Config()
+                    self.config[section_name] = section_conf
+                continue
+            if '=' in line:
+                key, value = line.split('=', 1)
+                key = key.strip()
+                value = value.strip()
+            else:
+                key = line
+                value = True
+            if key in section_conf:
+                print "WARNING! [%s] key %s redefinition. old value: '5s' new value: '%s'" % (section_name, key, section_conf[key], value)
+            section_conf[key]= value
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="MySQL tool")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("-a", "--analyze", dest="command", action="store_const", const="ANALYZE", help="ANALYZE all databases")
+    group.add_argument("-o", "--optimize", dest="command", action="store_const", const="OPTIMIZE", help="OPTIMIZE all databases")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Print processed tables")
+    return parser.parse_args()
+
+
+class Application:
+    def __init__(self, args, config):
+        self.args = args
+        self.config = config
+
+    def run(self):
+        with closing(MySQLdb.connect(user=self.config.client.user, passwd=self.config.client.password, unix_socket=self.config.client.socket)) as conn:
+            with closing(conn.cursor()) as cursor:
+                cursor.execute("""
+                    SELECT table_schema, table_name
+                    FROM information_schema.tables
+                    WHERE table_schema NOT IN ('information_schema', 'performance_schema', 'mysql', 'sys') AND engine<>'MEMORY'
+                    ORDER BY table_schema, table_name
+                """)
+                tables = list()
+                for table_schema, table_name in cursor.fetchall():
+                    tables.append((table_schema, table_name))
+                for table_schema, table_name in tables:
+                    cursor.execute("""%s TABLE %s.%s""" % (self.args.command, table_schema, table_name))
+                    out = list()
+                    status = None
+                    for table, op, msg_type, msg_text in cursor.fetchall():
+                        out.append((table, op, msg_type, msg_text))
+                        if msg_type == 'status':
+                            status = msg_text
+                    if status != 'OK' or self.args.verbose:
+                        for table, op, msg_type, msg_text in out:
+                            print "%s\t%s\t%s\t%s" % (table, op, msg_type, msg_text)
+                        print
+
+
+def main():
+    args = parse_args()
+    config = ConfigReader().config
+    Application(args, config).run()
+
+
+if __name__=='__main__':
+    main()
