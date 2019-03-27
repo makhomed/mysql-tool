@@ -19,7 +19,7 @@ from contextlib import closing
 __author__ = "Gena Makhomed"
 __contact__ = "https://github.com/makhomed/mysql-tool"
 __license__ = "GPLv3"
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __date__ = "2019-03-27"
 
 
@@ -39,6 +39,8 @@ class Config(dict):
 
 
 class ConfigReader:
+    """ https://dev.mysql.com/doc/refman/5.7/en/option-files.html
+    """
 
     def __init__(self):
         self.config = Config()
@@ -58,6 +60,8 @@ class ConfigReader:
                 line = line[:comment_start]
             line = line.strip()
             if not line:
+                continue
+            if line.startswith(';'):
                 continue
             line = line.replace("\t", "\x20")
             match = re.match(r'!includedir\s+(.+)', line)
@@ -100,15 +104,15 @@ class ConfigReader:
                 key = line
                 value = True
             if key in section_conf:
-                print "WARNING! [%s] key %s redefinition. old value: '5s' new value: '%s'" % (section_name, key, section_conf[key], value)
+                print "WARNING! [%s] key %s redefinition. old value: '%s' new value: '%s'" % (section_name, key, section_conf[key], value)
             section_conf[key]= value
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="MySQL tool")
-    parser.add_argument("-a", "--analyze", action="store_true", help="ANALYZE all databases")
-    parser.add_argument("-o", "--optimize", action="store_true", help="OPTIMIZE all databases")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Print processed tables")
+    parser.add_argument("-a", "--analyze", action="store_true", help="analyze all databases")
+    parser.add_argument("-o", "--optimize", action="store_true", help="optimize all databases")
+    parser.add_argument("-v", "--verbose", action="store_true", help="print processed tables")
     args = parser.parse_args()
     if not args.analyze and not args.optimize:
         parser.print_help()
