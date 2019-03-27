@@ -23,7 +23,7 @@ Usage
 .. code-block:: none
 
     # /opt/mysql-tool/mysql-tool --help
-    usage: mysql-tool [-h] (-a | -o) [-v]
+    usage: mysql-tool [-h] [-a] [-o] [-v]
 
     MySQL tool
 
