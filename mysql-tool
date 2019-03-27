@@ -19,8 +19,8 @@ from contextlib import closing
 __author__ = "Gena Makhomed"
 __contact__ = "https://github.com/makhomed/mysql-tool"
 __license__ = "GPLv3"
-__version__ = "1.0.0"
-__date__ = "2018-11-23"
+__version__ = "1.0.1"
+__date__ = "2019-03-27"
 
 
 class Config(dict):
@@ -106,19 +106,30 @@ class ConfigReader:
 
 def parse_args():
     parser = argparse.ArgumentParser(description="MySQL tool")
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-a", "--analyze", dest="command", action="store_const", const="ANALYZE", help="ANALYZE all databases")
-    group.add_argument("-o", "--optimize", dest="command", action="store_const", const="OPTIMIZE", help="OPTIMIZE all databases")
+    parser.add_argument("-a", "--analyze", action="store_true", help="ANALYZE all databases")
+    parser.add_argument("-o", "--optimize", action="store_true", help="OPTIMIZE all databases")
     parser.add_argument("-v", "--verbose", action="store_true", help="Print processed tables")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if not args.analyze and not args.optimize:
+        parser.print_help()
+    return args
 
 
 class Application:
+
     def __init__(self, args, config):
         self.args = args
         self.config = config
 
+
     def run(self):
+        if self.args.optimize:
+            self._run('OPTIMIZE')
+        if self.args.analyze:
+            self._run('ANALYZE')
+
+
+    def _run(self, command):
         with closing(MySQLdb.connect(user=self.config.client.user, passwd=self.config.client.password, unix_socket=self.config.client.socket)) as conn:
             with closing(conn.cursor()) as cursor:
                 cursor.execute("""
@@ -131,7 +142,7 @@ class Application:
                 for table_schema, table_name in cursor.fetchall():
                     tables.append((table_schema, table_name))
                 for table_schema, table_name in tables:
-                    cursor.execute("""%s TABLE %s.%s""" % (self.args.command, table_schema, table_name))
+                    cursor.execute("""%s TABLE %s.%s""" % (command, table_schema, table_name))
                     out = list()
                     status = None
                     for table, op, msg_type, msg_text in cursor.fetchall():
