@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 """
 yum install gcc python-devel
@@ -104,7 +104,7 @@ class ConfigReader:
                 key = line
                 value = True
             if key in section_conf:
-                print "WARNING! [%s] key %s redefinition. old value: '%s' new value: '%s'" % (section_name, key, section_conf[key], value)
+                print("WARNING! [%s] key %s redefinition. old value: '%s' new value: '%s'" % (section_name, key, section_conf[key], value))
             section_conf[key]= value
 
 
@@ -134,7 +134,8 @@ class Application:
 
 
     def _run(self, command):
-        with closing(MySQLdb.connect(user=self.config.client.user, passwd=self.config.client.password, unix_socket=self.config.client.socket)) as conn:
+        unix_socket = self.config.client.get('socket', self.config.mysqld.socket)
+        with closing(MySQLdb.connect(user=self.config.client.user, passwd=self.config.client.password, unix_socket=unix_socket)) as conn:
             with closing(conn.cursor()) as cursor:
                 cursor.execute("""
                     SELECT table_schema, table_name
@@ -155,8 +156,8 @@ class Application:
                             status = msg_text
                     if status != 'OK' or self.args.verbose:
                         for table, op, msg_type, msg_text in out:
-                            print "%s\t%s\t%s\t%s" % (table, op, msg_type, msg_text)
-                        print
+                            print("%s\t%s\t%s\t%s" % (table, op, msg_type, msg_text))
+                        print()
 
 
 def main():
