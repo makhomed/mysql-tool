@@ -134,8 +134,7 @@ class Application:
 
 
     def _run(self, command):
-        unix_socket = self.config.client.get('socket', self.config.mysqld.socket)
-        with closing(MySQLdb.connect(user=self.config.client.user, passwd=self.config.client.password, unix_socket=unix_socket)) as conn:
+        with closing(MySQLdb.connect(user=self.config.client.user, passwd=self.config.client.password, unix_socket=self.config.mysqld.socket)) as conn:
             with closing(conn.cursor()) as cursor:
                 cursor.execute("""
                     SELECT table_schema, table_name
