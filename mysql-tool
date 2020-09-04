@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 
 """
-yum install gcc python-devel
-yum install Percona-Server-devel-57
-pip install mysqlclient
-
+mysqlclient 2.0.1
+-----------------
+https://pypi.org/project/mysqlclient/
+yum install python3-devel percona-server-devel gcc
+pip3 install mysqlclient
 """
 
 import argparse
@@ -19,8 +20,8 @@ from contextlib import closing
 __author__ = "Gena Makhomed"
 __contact__ = "https://github.com/makhomed/mysql-tool"
 __license__ = "GPLv3"
-__version__ = "1.0.2"
-__date__ = "2019-03-27"
+__version__ = "2.0.0"
+__date__ = "2020-09-04"
 
 
 class Config(dict):
@@ -39,9 +40,8 @@ class Config(dict):
 
 
 class ConfigReader:
-    """ https://dev.mysql.com/doc/refman/5.7/en/option-files.html
+    """ https://dev.mysql.com/doc/refman/8.0/en/option-files.html
     """
-
     def __init__(self):
         self.config = Config()
         self.read_config('/etc/my.cnf')
