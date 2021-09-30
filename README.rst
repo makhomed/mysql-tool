@@ -23,7 +23,8 @@ Usage
 .. code-block:: none
 
     # /opt/mysql-tool/mysql-tool --help
-    usage: mysql-tool [-h] [-a] [-o] [-v]
+
+    usage: mysql-tool [-h] [-a] [-o] [-c] [-v]
 
     MySQL tool
 
@@ -31,4 +32,5 @@ Usage
       -h, --help      show this help message and exit
       -a, --analyze   analyze all databases
       -o, --optimize  optimize all databases
+      -c, --check     check all databases
       -v, --verbose   print processed tables

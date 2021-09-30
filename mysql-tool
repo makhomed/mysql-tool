@@ -20,8 +20,8 @@ from contextlib import closing
 __author__ = "Gena Makhomed"
 __contact__ = "https://github.com/makhomed/mysql-tool"
 __license__ = "GPLv3"
-__version__ = "2.0.0"
-__date__ = "2020-09-04"
+__version__ = "2.0.1"
+__date__ = "2021-09-30"
 
 
 class Config(dict):
@@ -112,9 +112,10 @@ def parse_args():
     parser = argparse.ArgumentParser(description="MySQL tool")
     parser.add_argument("-a", "--analyze", action="store_true", help="analyze all databases")
     parser.add_argument("-o", "--optimize", action="store_true", help="optimize all databases")
+    parser.add_argument("-c", "--check", action="store_true", help="check all databases")
     parser.add_argument("-v", "--verbose", action="store_true", help="print processed tables")
     args = parser.parse_args()
-    if not args.analyze and not args.optimize:
+    if not args.analyze and not args.optimize and not args.check:
         parser.print_help()
     return args
 
@@ -127,6 +128,8 @@ class Application:
 
 
     def run(self):
+        if self.args.check:
+            self._run('CHECK')
         if self.args.optimize:
             self._run('OPTIMIZE')
         if self.args.analyze:
