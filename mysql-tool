@@ -149,7 +149,7 @@ class Application:
                 for table_schema, table_name in cursor.fetchall():
                     tables.append((table_schema, table_name))
                 for table_schema, table_name in tables:
-                    cursor.execute("""%s TABLE %s.%s""" % (command, table_schema, table_name))
+                    cursor.execute("""%s TABLE `%s`.`%s`""" % (command, table_schema, table_name))
                     out = list()
                     status = None
                     for table, op, msg_type, msg_text in cursor.fetchall():
